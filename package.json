@@ -1,0 +1,33 @@
+{
+  "name": "wat-tokenizer",
+  "version": "0.0.0",
+  "description": "Tokenize WebAssembly Text-format into list of lists",
+  "main": "index.js",
+  "dependencies": {},
+  "devDependencies": {
+    "tape": "^4.8.0"
+  },
+  "scripts": {
+    "test": "tape test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/emilbayes/wat-tokenizer.git"
+  },
+  "keywords": [
+    "wat",
+    "wasm",
+    "tokenize",
+    "lexer",
+    "parser",
+    "s-expression",
+    "sexpr",
+    "lisp"
+  ],
+  "author": "Emil Bay <github@tixz.dk>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/emilbayes/wat-tokenizer/issues"
+  },
+  "homepage": "https://github.com/emilbayes/wat-tokenizer#readme"
+}
