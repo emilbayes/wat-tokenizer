@@ -46,7 +46,7 @@ module.exports = function tokenizer (prealloc) {
     // Flush any trailing whitespace
     if (insideWhitespace) addtoken()
 
-    if (assert) {
+    if (assert !== false) {
       if (stack.length > 1) throw new Error('Unfinished S-expression')
       var str = token.slice(0, tptr).toString().replace(/\n/g, '\\n').replace(/\t/g, '\\t')
       if (insideString) throw new Error('Unfinished string: `' + str + '`')

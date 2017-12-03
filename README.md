@@ -50,7 +50,7 @@ increase this. Default is `2048` bytes.
 Update the tokenizer state with the source code contained in `Buffer`
 `sourceBuf`. Returns the tokenizer itself for easy chaining.
 
-### `var listOfLists = tokenizer.final([assert = false])`
+### `var listOfLists = tokenizer.final([assert = true])`
 
 Retrieve the parsed list of lists, optionally asserting that the internal state
 is not in an inconsistent state. This method may be called multiple times. Note
