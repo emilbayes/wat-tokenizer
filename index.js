@@ -48,11 +48,11 @@ module.exports = function tokenizer (prealloc) {
 
   return self
 
-  function final (assert) {
+  function final (unsafe) {
     // Flush any trailing whitespace
     if (insideWhitespace) addtoken()
 
-    if (assert !== false) {
+    if (unsafe !== false) {
       assert(stack.length === 1, 'Unfinished S-expression, col: ' + startCol + ', line: ' + startLine)
       var str = token.slice(0, tptr).toString().replace(/\n/g, '\\n').replace(/\t/g, '\\t').replace(/\0/g, '\\u{0000}')
       assert(insideString === false, 'Unfinished string: `' + str + '`, col: ' + startCol + ', line: ' + startLine)
