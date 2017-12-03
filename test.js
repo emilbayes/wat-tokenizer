@@ -59,7 +59,6 @@ test('string', function (assert) {
   assert.end()
 })
 
-
 test('escaped string', function (assert) {
   var tok = tokenizer()
   tok.update(Buffer.from(`(module "test \\"function\\"")`))
@@ -113,19 +112,23 @@ test('messy parsing', function (assert) {
   tok.update(Buffer.from(`
 
       (module
-
+;; add comment here
 
               "test \\"function\\""
-
+              ;; "comment \\"
                 (
                   nested
                 ))`))
   var ast = [
     t('\n\n      ', 1, 1),
     l([t("module", 8, 3),
-       t('\n\n\n              ', 14, 3),
+       t('\n', 14, 3),
+       t(';; add comment here', 1, 4),
+       t('\n\n              ', 20, 4),
        t('"test \\"function\\""', 15, 6),
-       t('\n\n                ', 33, 6),
+       t('\n              ', 33, 6),
+       t(';; "comment \\"', 15, 7),
+       t('\n                ', 29, 7),
        l([
          t('\n                  ', 18, 8),
          t("nested", 19, 9),
@@ -133,6 +136,27 @@ test('messy parsing', function (assert) {
        ], 17, 8)
     ], 7, 3)]
   var code = tok.final()
+  assert.same(walk(code, ast), true)
+  assert.end()
+})
+
+test('line comment', function (assert) {
+  var tok = tokenizer()
+  tok.update(Buffer.from(`(
+    ;; Some comment ("ignores this")
+    ;;" second comment
+    "; this is a string")`))
+  var ast = [
+    l([
+      t('\n    ', 2, 1),
+      t(';; Some comment ("ignores this")', 5, 2),
+      t('\n    ', 37, 2),
+      t(';;" second comment', 5, 3),
+      t('\n    ', 23, 3),
+      t('"; this is a string"', 5, 4)
+    ], 1, 1)
+  ]
+  var code = tok.final(false)
   assert.same(walk(code, ast), true)
   assert.end()
 })
