@@ -18,10 +18,10 @@ module.exports = function tokenizer (prealloc) {
   assert(prealloc >= 128, 'prealloc must be at least 128')
   assert(Number.isSafeInteger(prealloc), 'prealloc must be safe integer')
 
-  // File root. A program can have multiple root S-Expressions
-  var root = []
+  // Root / top S-expression. A program can have multiple top-level S-Expressions
+  var top = []
   // Our passing stack. Exploiting the fact that arrays are passed by reference
-  var stack = [root]
+  var stack = [top]
 
   // Node reference as we always will be working with the last element in the
   // stack, and pop successively as we close S-Expressions. Again, reference
@@ -61,7 +61,7 @@ module.exports = function tokenizer (prealloc) {
       assert(tptr === 0, 'Unfinished token: `' + str + '`, col: ' + startCol + ', line: ' + startLine)
     }
 
-    return root
+    return top
   }
 
   function update (source) {
