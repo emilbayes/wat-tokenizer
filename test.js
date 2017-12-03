@@ -45,7 +45,7 @@ test('whitespace (col regression)', function (assert) {
   tok.update(Buffer.from(`
     (`))
   var ast = [t('\n    ', 1, 1), l([], 5, 2)]
-  var code = tok.finish(false)
+  var code = tok.final(false)
   assert.same(walk(code, ast), true)
   assert.end()
 })
