@@ -5,6 +5,7 @@ var DICT = {
   LIST_END: 41,
   QUOTE: 34,
   ESCAPE: 92,
+  SEMI_COLON: 59,
   LF: 10,
   TAB: 9,
   SPACE: 32
@@ -30,6 +31,7 @@ module.exports = function tokenizer (prealloc) {
   // State variables
   var insideString = false
   var insideWhitespace = false
+  var insideLineComment = false
 
   // Source positions. Added to each token and list
   var line = 1
@@ -50,7 +52,7 @@ module.exports = function tokenizer (prealloc) {
 
   function final (unsafe) {
     // Flush any trailing whitespace
-    if (insideWhitespace) addtoken()
+    if (insideWhitespace || insideLineComment) addtoken()
 
     if (unsafe !== false) {
       assert(stack.length === 1, 'Unfinished S-expression, col: ' + startCol + ', line: ' + startLine)
@@ -68,9 +70,11 @@ module.exports = function tokenizer (prealloc) {
     parseloop: for (var i = 0; i < source.length; i++, col++) {
       switch(source[i]) {
         case DICT.LF:
+          if (insideLineComment) addtoken()
+
         case DICT.TAB:
         case DICT.SPACE:
-          if (!insideWhitespace && !insideString) {
+          if (!insideWhitespace && !insideString && !insideLineComment) {
             addtoken()
             insideWhitespace = true
           }
@@ -81,8 +85,18 @@ module.exports = function tokenizer (prealloc) {
           }
 
           break
+        case DICT.SEMI_COLON:
+          if (!insideLineComment && token[tptr - 1] === DICT.SEMI_COLON) {
+            tptr-- // "ignore" the semi colon in the token buffer
+            addtoken()
+            startCol--
+            token[tptr++] = DICT.SEMI_COLON // re-add the semi colon to the buffer
+            insideLineComment = true
+          }
+          break
+
         case DICT.QUOTE:
-          if (!insideString) {
+          if (!insideString && !insideLineComment) {
             addtoken()
             insideString = true
             token[tptr++] = source[i] // include the initial quote
@@ -97,7 +111,7 @@ module.exports = function tokenizer (prealloc) {
           break
 
         case DICT.LIST_START:
-          if (!insideString) {
+          if (!insideString && !insideLineComment) {
             addtoken()
             pushlist()
             continue parseloop
@@ -105,7 +119,7 @@ module.exports = function tokenizer (prealloc) {
           break
 
         case DICT.LIST_END:
-          if (!insideString) {
+          if (!insideString && !insideLineComment) {
             addtoken()
             poplist()
             continue parseloop
@@ -113,7 +127,7 @@ module.exports = function tokenizer (prealloc) {
           break
 
         default:
-          if (!insideString && insideWhitespace) {
+          if (!insideString && !insideLineComment && insideWhitespace) {
             addtoken()
           }
 
@@ -150,6 +164,10 @@ module.exports = function tokenizer (prealloc) {
   }
 
   function addtoken () {
+    insideString = false
+    insideWhitespace = false
+    insideLineComment = false
+
     // guard against empty tokens
     if (tptr === 0) return
 
@@ -161,8 +179,5 @@ module.exports = function tokenizer (prealloc) {
 
     startCol = col
     startLine = line
-
-    insideString = false
-    insideWhitespace = false
   }
 }
