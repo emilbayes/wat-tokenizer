@@ -15,11 +15,13 @@ module.exports = function tokenizer (prealloc) {
 
   var insideString = false
 
+  var line = 1
+  var col = 1
+
   var token = Buffer.alloc(prealloc)
   var tptr = 0
-
-  var col = 1
-  var line = 1
+  var startCol = col
+  var startLine = line
 
   return {finish: finish, update: update}
 
@@ -38,19 +40,26 @@ module.exports = function tokenizer (prealloc) {
       var node = stack[stack.length - 1]
 
       if (source[i] === DICT.LF) {
-        line += 1
-        col = 0
+        line++
+        col = 1
       }
 
       if (insideString) {
         // If not an escaped quote, append the string to the current s-expression
         // and reset "string" state, else simply append the char to the string
         if (source[i] === DICT.QUOTE && source[i - 1] !== DICT.ESCAPE) {
-          token[tptr++] = DICT.QUOTE
-          node.push(token.slice(0, tptr).toString())
+          token[tptr++] = source[i] // include the final quote
+          var t = new String(token.slice(0, tptr).toString())
+          t.col = startCol
+          t.line = startLine
+          node.push(t)
           tptr = 0
           insideString = false
         } else {
+          if (tptr === 0) {
+            startCol = col
+            startLine = line
+          }
           token[tptr++] = source[i]
         }
         // This continue will skip the switch
@@ -60,7 +69,7 @@ module.exports = function tokenizer (prealloc) {
       switch(source[i]) {
         case DICT.QUOTE:
           insideString = true
-          token[tptr++] = DICT.QUOTE
+          token[tptr++] = source[i] // include the initial quote
           break
 
         case DICT.LIST_START:
@@ -70,11 +79,15 @@ module.exports = function tokenizer (prealloc) {
 
           node.push(elm)
           stack.push(elm)
+
           break
 
         case DICT.LIST_END:
           if (tptr !== 0) {
-            node.push(token.slice(0, tptr).toString())
+            var t = new String(token.slice(0, tptr).toString())
+            t.col = startCol
+            t.line = startLine
+            node.push(t)
             tptr = 0
           }
 
@@ -85,7 +98,10 @@ module.exports = function tokenizer (prealloc) {
         case DICT.TAB:
         case DICT.SPACE:
           if (tptr !== 0) {
-            node.push(token.slice(0, tptr).toString())
+            var t = new String(token.slice(0, tptr).toString())
+            t.col = startCol
+            t.line = startLine
+            node.push(t)
             tptr = 0
           }
           break
