@@ -10,106 +10,145 @@ var DICT = {
 
 module.exports = function tokenizer (prealloc) {
   if (prealloc == null) prealloc = 2048
+
+  // File root. A program can have multiple root S-Expressions
   var root = []
+  // Our passing stack. Exploiting the fact that arrays are passed by reference
   var stack = [root]
 
-  var insideString = false
+  // Node reference as we always will be working with the last element in the
+  // stack, and pop successively as we close S-Expressions. Again, reference
+  // because array
+  var node = stack[stack.length - 1]
 
+  // State variables
+  var insideString = false
+  var insideWhitespace = false
+
+  // Source positions. Added to each token and list
   var line = 1
   var col = 1
-
-  var token = Buffer.alloc(prealloc)
-  var tptr = 0
-  var startCol = col
+  // Updated each time we encounter a new elm. Required since we create a new
+  // string object at the bondary between each token
   var startLine = line
+  var startCol = col
+
+  // Buffer to contain the current token
+  var token = Buffer.alloc(prealloc)
+  // Counter used to slice the token buffer to the number of bytes written
+  var tptr = 0
 
   return {finish: finish, update: update}
 
   function finish (assert) {
+    if (insideWhitespace) addtoken()
     if (assert) {
       if (stack.length > 1) throw new Error('Unfinished S-expression')
-      if (insideString) throw new Error('Unfinished string')
-      if (tptr > 0) throw new Error('Unfinished token')
+      var str = token.slice(0, tptr).toString().replace(/\n/g, '\\n').replace(/\t/g, '\\t')
+      if (insideString) throw new Error('Unfinished string: `' + str + '`')
+      if (tptr > 0) throw new Error('Unfinished token: `' + str + '`')
     }
 
     return root
   }
 
   function update (source) {
-    for (var i = 0; i < source.length; i++, col++) {
-      var node = stack[stack.length - 1]
-
-      if (source[i] === DICT.LF) {
-        line++
-        col = 1
-      }
-
-      if (insideString) {
-        // If not an escaped quote, append the string to the current s-expression
-        // and reset "string" state, else simply append the char to the string
-        if (source[i] === DICT.QUOTE && source[i - 1] !== DICT.ESCAPE) {
-          token[tptr++] = source[i] // include the final quote
-          var t = new String(token.slice(0, tptr).toString())
-          t.col = startCol
-          t.line = startLine
-          node.push(t)
-          tptr = 0
-          insideString = false
-        } else {
-          if (tptr === 0) {
-            startCol = col
-            startLine = line
-          }
-          token[tptr++] = source[i]
-        }
-        // This continue will skip the switch
-        continue
-      }
-
+    parseloop: for (var i = 0; i < source.length; i++, col++) {
       switch(source[i]) {
-        case DICT.QUOTE:
-          insideString = true
-          token[tptr++] = source[i] // include the initial quote
-          break
-
-        case DICT.LIST_START:
-          var elm = []
-          elm.col = col
-          elm.line = line
-
-          node.push(elm)
-          stack.push(elm)
-
-          break
-
-        case DICT.LIST_END:
-          if (tptr !== 0) {
-            var t = new String(token.slice(0, tptr).toString())
-            t.col = startCol
-            t.line = startLine
-            node.push(t)
-            tptr = 0
-          }
-
-          stack.pop()
-          break
-
         case DICT.LF:
         case DICT.TAB:
         case DICT.SPACE:
-          if (tptr !== 0) {
-            var t = new String(token.slice(0, tptr).toString())
-            t.col = startCol
-            t.line = startLine
-            node.push(t)
-            tptr = 0
+          if (!insideWhitespace && !insideString) {
+            addtoken()
+            insideWhitespace = true
+          }
+
+          if (source[i] === DICT.LF) {
+            line++
+            col = 0
+          }
+
+          break
+        case DICT.QUOTE:
+          if (!insideString) {
+            addtoken()
+            insideString = true
+            token[tptr++] = source[i] // include the initial quote
+            continue parseloop
+          }
+
+          if (insideString && token[tptr - 1] !== DICT.ESCAPE) {
+            token[tptr++] = source[i] // include the final quote
+            addtoken()
+            continue parseloop
+          }
+          break
+
+        case DICT.LIST_START:
+          if (!insideString) {
+            addtoken()
+            pushlist()
+            continue parseloop
+          }
+          break
+
+        case DICT.LIST_END:
+          if (!insideString) {
+            addtoken()
+            poplist()
+            continue parseloop
           }
           break
 
         default:
-          token[tptr++] = source[i]
+          if (!insideString && insideWhitespace) {
+            addtoken()
+          }
+
           break
       }
+
+      // Always append token unless continue from above statements
+      token[tptr++] = source[i]
     }
+  }
+
+  function pushlist () {
+    var elm = []
+    elm.col = startCol
+    elm.line = startLine
+
+    startCol = col + 1
+    startLine = line
+
+    stack.push(elm)
+    node.push(elm)
+    node = elm
+  }
+
+  function poplist () {
+    stack.pop()
+
+    startCol = col + 1
+    startLine = line
+
+    node = stack[stack.length - 1]
+  }
+
+  function addtoken () {
+    // guard against empty tokens
+    if (tptr === 0) return
+
+    var t = new String(token.slice(0, tptr).toString())
+    t.col = startCol
+    t.line = startLine
+    node.push(t)
+    tptr = 0
+
+    startCol = col
+    startLine = line
+
+    insideString = false
+    insideWhitespace = false
   }
 }
