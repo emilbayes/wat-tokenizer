@@ -53,10 +53,10 @@ module.exports = function tokenizer (prealloc) {
     if (insideWhitespace) addtoken()
 
     if (assert !== false) {
-      assert(stack.length > 1, 'Unfinished S-expression, col: ' + startCol + ', line: ' + startLine)
+      assert(stack.length === 1, 'Unfinished S-expression, col: ' + startCol + ', line: ' + startLine)
       var str = token.slice(0, tptr).toString().replace(/\n/g, '\\n').replace(/\t/g, '\\t').replace(/\0/g, '\\u{0000}')
-      assert(insideString, 'Unfinished string: `' + str + '`, col: ' + startCol + ', line: ' + startLine)
-      assert(tptr > 0, 'Unfinished token: `' + str + '`, col: ' + startCol + ', line: ' + startLine)
+      assert(insideString === false, 'Unfinished string: `' + str + '`, col: ' + startCol + ', line: ' + startLine)
+      assert(tptr === 0, 'Unfinished token: `' + str + '`, col: ' + startCol + ', line: ' + startLine)
     }
 
     return root
