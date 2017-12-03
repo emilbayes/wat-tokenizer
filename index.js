@@ -67,8 +67,8 @@ module.exports = function tokenizer (prealloc) {
   function update (source) {
     assert(Buffer.isBuffer(source), 'source must be Buffer')
 
-    parseloop: for (var i = 0; i < source.length; i++, col++) {
-      switch(source[i]) {
+    for (var i = 0; i < source.length; i++, col++) {
+      switch (source[i]) {
         case DICT.LF:
           if (insideLineComment) addtoken()
 
@@ -100,13 +100,13 @@ module.exports = function tokenizer (prealloc) {
             addtoken()
             insideString = true
             token[tptr++] = source[i] // include the initial quote
-            continue parseloop
+            continue // continue loop
           }
 
           if (insideString && token[tptr - 1] !== DICT.ESCAPE) {
             token[tptr++] = source[i] // include the final quote
             addtoken()
-            continue parseloop
+            continue // continue loop
           }
           break
 
@@ -114,7 +114,7 @@ module.exports = function tokenizer (prealloc) {
           if (!insideString && !insideLineComment) {
             addtoken()
             pushlist()
-            continue parseloop
+            continue // continue loop
           }
           break
 
@@ -122,7 +122,7 @@ module.exports = function tokenizer (prealloc) {
           if (!insideString && !insideLineComment) {
             addtoken()
             poplist()
-            continue parseloop
+            continue // continue loop
           }
           break
 

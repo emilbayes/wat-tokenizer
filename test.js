@@ -22,7 +22,7 @@ test('empty list', function (assert) {
 test('simple parsing', function (assert) {
   var tok = tokenizer()
   tok.update(Buffer.from(`(module)`))
-  var ast = [l([t("module", 2, 1)], 1, 1)]
+  var ast = [l([t('module', 2, 1)], 1, 1)]
   var code = tok.final()
   assert.same(walk(code, ast), true)
   assert.end()
@@ -34,7 +34,7 @@ test('whitespace', function (assert) {
     (
     module
   )`))
-  var ast = [t('\n    ', 1, 1), l([t('\n    ', 6, 2), t("module", 5, 3), t('\n  ', 11, 3)], 5, 2)]
+  var ast = [t('\n    ', 1, 1), l([t('\n    ', 6, 2), t('module', 5, 3), t('\n  ', 11, 3)], 5, 2)]
   var code = tok.final()
   assert.same(walk(code, ast), true)
   assert.end()
@@ -53,7 +53,7 @@ test('whitespace (col regression)', function (assert) {
 test('string', function (assert) {
   var tok = tokenizer()
   tok.update(Buffer.from(`(module "test")`))
-  var ast = [l([t("module", 2, 1), t(' ', 8, 1), t('"test"', 9, 1)], 1, 1)]
+  var ast = [l([t('module', 2, 1), t(' ', 8, 1), t('"test"', 9, 1)], 1, 1)]
   var code = tok.final()
   assert.same(walk(code, ast), true)
   assert.end()
@@ -62,7 +62,7 @@ test('string', function (assert) {
 test('escaped string', function (assert) {
   var tok = tokenizer()
   tok.update(Buffer.from(`(module "test \\"function\\"")`))
-  var ast = [l([t("module", 2, 1), t(' ', 8, 1), t('"test \\"function\\""', 9, 1)], 1, 1)]
+  var ast = [l([t('module', 2, 1), t(' ', 8, 1), t('"test \\"function\\""', 9, 1)], 1, 1)]
   var code = tok.final()
   assert.same(walk(code, ast), true)
   assert.end()
@@ -99,7 +99,7 @@ test('cond', function (assert) {
       t(' ', 41, 3),
       l([
         t('-', 43, 3), t(' ', 44, 3), t('x', 45, 3)
-      ], 42, 3),
+      ], 42, 3)
     ], 33, 3)
   ], 1, 1)]
   var code = tok.final()
@@ -121,19 +121,19 @@ test('messy parsing', function (assert) {
                 ))`))
   var ast = [
     t('\n\n      ', 1, 1),
-    l([t("module", 8, 3),
-       t('\n', 14, 3),
-       t(';; add comment here', 1, 4),
-       t('\n\n              ', 20, 4),
-       t('"test \\"function\\""', 15, 6),
-       t('\n              ', 33, 6),
-       t(';; "comment \\"', 15, 7),
-       t('\n                ', 29, 7),
-       l([
-         t('\n                  ', 18, 8),
-         t("nested", 19, 9),
-         t('\n                ', 25, 9)
-       ], 17, 8)
+    l([t('module', 8, 3),
+      t('\n', 14, 3),
+      t(';; add comment here', 1, 4),
+      t('\n\n              ', 20, 4),
+      t('"test \\"function\\""', 15, 6),
+      t('\n              ', 33, 6),
+      t(';; "comment \\"', 15, 7),
+      t('\n                ', 29, 7),
+      l([
+        t('\n                  ', 18, 8),
+        t('nested', 19, 9),
+        t('\n                ', 25, 9)
+      ], 17, 8)
     ], 7, 3)]
   var code = tok.final()
   assert.same(walk(code, ast), true)
@@ -166,7 +166,7 @@ test.skip('unicode', function (assert) {
   var tok = tokenizer()
   tok.update(Buffer.from(`(module 漢字 hello)`))
   var ast = [
-    l([t("module", 2, 1), t(' ', 7, 1), t("漢字", 8, 1), t(' ', 10, 1), t('hello', 11, 1)], 1, 1)]
+    l([t('module', 2, 1), t(' ', 7, 1), t('漢字', 8, 1), t(' ', 10, 1), t('hello', 11, 1)], 1, 1)]
   var code = tok.final()
   assert.same(walk(code, ast), true)
   assert.end()
@@ -184,23 +184,23 @@ test('stream', function (assert) {
   })
 })
 
-function l(list, col, line) {
+function l (list, col, line) {
   list.col = col
   list.line = line
   return list
 }
 
-function t(str, col, line) {
+function t (str, col, line) {
   var s = new String(str)
   s.col = col
   s.line = line
   return s
 }
 
-function equal(a, b) {
+function equal (a, b) {
   if (a.valueOf() !== b.valueOf()) return new Error(`Values do not match for tokens\n${util.inspect(a)}\n${util.inspect(b)}\n`)
-  if(a.col !== b.col) return new Error(`Columns do not match for tokens\n${util.inspect(a)}\n${util.inspect(b)}\n`)
-  if(a.line !== b.line) return new Error(`Lines do not match for tokens\n${util.inspect(a)}\n${util.inspect(b)}\n`)
+  if (a.col !== b.col) return new Error(`Columns do not match for tokens\n${util.inspect(a)}\n${util.inspect(b)}\n`)
+  if (a.line !== b.line) return new Error(`Lines do not match for tokens\n${util.inspect(a)}\n${util.inspect(b)}\n`)
 
   return true
 }
@@ -209,7 +209,7 @@ function walk (a, b) {
   var stack = [[a, b]]
   var pair
   var tEql
-  while(pair = stack.pop()) {
+  while (pair = stack.pop()) {
     for (var i = 0; i < pair[0].length; i++) {
       if (Array.isArray(pair[0][i]) && Array.isArray(pair[1][i])) {
         if (pair[0][i].col !== pair[1][i].col) return new Error(`Columns do not match for lists: \n${util.inspect(a)}\n${util.inspect(b)}\n`)
