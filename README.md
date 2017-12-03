@@ -48,7 +48,7 @@ increase this. Default is `2048` bytes.
 ### `tokenizer.update(sourceBuf)`
 
 Update the tokenizer state with the source code contained in `Buffer`
-`sourceBuf`.
+`sourceBuf`. Returns the tokenizer itself for easy chaining.
 
 ### `var listOfLists = tokenizer.final([assert = false])`
 

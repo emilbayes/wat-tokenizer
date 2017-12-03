@@ -38,7 +38,9 @@ module.exports = function tokenizer (prealloc) {
   // Counter used to slice the token buffer to the number of bytes written
   var tptr = 0
 
-  return {finish: finish, update: update}
+  var self = {finish: finish, update: update}
+
+  return self
 
   function finish (assert) {
     // Flush any trailing whitespace
@@ -114,6 +116,8 @@ module.exports = function tokenizer (prealloc) {
       token[tptr++] = source[i]
     }
   }
+
+  return self
 
   function pushlist () {
     var elm = []
