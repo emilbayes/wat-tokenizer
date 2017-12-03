@@ -1,3 +1,5 @@
+var assert = require('nanoassert')
+
 var DICT = {
   LIST_START: 40,
   LIST_END: 41,
@@ -10,6 +12,10 @@ var DICT = {
 
 module.exports = function tokenizer (prealloc) {
   if (prealloc == null) prealloc = 2048
+
+  assert(typeof prealloc === 'number', 'prealloc must be Number')
+  assert(prealloc >= 128, 'prealloc must be at least 128')
+  assert(Number.isSafeInteger(prealloc), 'prealloc must be safe integer')
 
   // File root. A program can have multiple root S-Expressions
   var root = []
@@ -57,6 +63,8 @@ module.exports = function tokenizer (prealloc) {
   }
 
   function update (source) {
+    assert(Buffer.isBuffer(source), 'source must be Buffer')
+
     parseloop: for (var i = 0; i < source.length; i++, col++) {
       switch(source[i]) {
         case DICT.LF:
