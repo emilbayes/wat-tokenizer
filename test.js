@@ -14,7 +14,7 @@ test('empty list', function (assert) {
   var tok = tokenizer()
   tok.update(Buffer.from(`()`))
   var ast = [l([], 1, 1)]
-  var code = tok.finish(true)
+  var code = tok.final()
   assert.same(walk(code, ast), true)
   assert.end()
 })
@@ -23,7 +23,7 @@ test('simple parsing', function (assert) {
   var tok = tokenizer()
   tok.update(Buffer.from(`(module)`))
   var ast = [l([t("module", 2, 1)], 1, 1)]
-  var code = tok.finish(true)
+  var code = tok.final()
   assert.same(walk(code, ast), true)
   assert.end()
 })
@@ -35,7 +35,7 @@ test('whitespace', function (assert) {
     module
   )`))
   var ast = [t('\n    ', 1, 1), l([t('\n    ', 6, 2), t("module", 5, 3), t('\n  ', 11, 3)], 5, 2)]
-  var code = tok.finish(true)
+  var code = tok.final()
   assert.same(walk(code, ast), true)
   assert.end()
 })
@@ -54,7 +54,7 @@ test('string', function (assert) {
   var tok = tokenizer()
   tok.update(Buffer.from(`(module "test")`))
   var ast = [l([t("module", 2, 1), t(' ', 8, 1), t('"test"', 9, 1)], 1, 1)]
-  var code = tok.finish(true)
+  var code = tok.final()
   assert.same(walk(code, ast), true)
   assert.end()
 })
@@ -64,7 +64,7 @@ test('escaped string', function (assert) {
   var tok = tokenizer()
   tok.update(Buffer.from(`(module "test \\"function\\"")`))
   var ast = [l([t("module", 2, 1), t(' ', 8, 1), t('"test \\"function\\""', 9, 1)], 1, 1)]
-  var code = tok.finish(true)
+  var code = tok.final()
   assert.same(walk(code, ast), true)
   assert.end()
 })
@@ -103,7 +103,7 @@ test('cond', function (assert) {
       ], 42, 3),
     ], 33, 3)
   ], 1, 1)]
-  var code = tok.finish(true)
+  var code = tok.final()
   assert.same(walk(code, ast), true)
   assert.end()
 })
@@ -132,7 +132,7 @@ test('messy parsing', function (assert) {
          t('\n                ', 25, 9)
        ], 17, 8)
     ], 7, 3)]
-  var code = tok.finish(true)
+  var code = tok.final()
   assert.same(walk(code, ast), true)
   assert.end()
 })
@@ -143,7 +143,7 @@ test.skip('unicode', function (assert) {
   tok.update(Buffer.from(`(module 漢字 hello)`))
   var ast = [
     l([t("module", 2, 1), t(' ', 7, 1), t("漢字", 8, 1), t(' ', 10, 1), t('hello', 11, 1)], 1, 1)]
-  var code = tok.finish(true)
+  var code = tok.final()
   assert.same(walk(code, ast), true)
   assert.end()
 })
@@ -155,7 +155,7 @@ test('stream', function (assert) {
   s.on('data', t.update)
   s.on('error', assert.error)
   s.on('end', function () {
-    // console.log(util.inspect(t.finish(true), {depth: null, colors: true}))
+    // console.log(util.inspect(t.final(), {depth: null, colors: true}))
     assert.end()
   })
 })

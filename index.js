@@ -38,11 +38,11 @@ module.exports = function tokenizer (prealloc) {
   // Counter used to slice the token buffer to the number of bytes written
   var tptr = 0
 
-  var self = {finish: finish, update: update}
+  var self = {final: final, update: update}
 
   return self
 
-  function finish (assert) {
+  function final (assert) {
     // Flush any trailing whitespace
     if (insideWhitespace) addtoken()
 

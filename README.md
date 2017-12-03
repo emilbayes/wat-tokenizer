@@ -11,7 +11,7 @@ var tokenizer = watTokenizer()
 
 tokenizer.parse(Buffer.from('(say (lower "hello world"))'))
 
-var ast = tokenizer.finish(true)
+var ast = tokenizer.final(true)
 ```
 
 The above S-Expression will have the following AST:
