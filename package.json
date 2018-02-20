@@ -1,6 +1,6 @@
 {
   "name": "wat-tokenizer",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Tokenize WebAssembly Text-format into list of lists",
   "main": "index.js",
   "dependencies": {
